@@ -1,5 +1,11 @@
 # tfc_controller
 
+[![Release](https://img.shields.io/github/v/release/raymonepping/tfc_controller)](https://github.com/raymonepping/tfc_controller/releases)
+[![License](https://img.shields.io/github/license/raymonepping/tfc_controller)](./LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/raymonepping/tfc_controller/ci.yml?label=CI)](https://github.com/raymonepping/tfc_controller/actions)
+
+---
+
 **tfc_controller v1.0.0 — Manage & export Terraform Cloud org data**
 
 A Bash-based controller for managing and exporting Terraform Cloud / Terraform Enterprise (TFC/TFE) organization data.
