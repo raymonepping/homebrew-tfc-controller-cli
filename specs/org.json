@@ -1,0 +1,12 @@
+{
+  "org": {
+    "name": "raymon-epping-org",
+    "email": "raymon.epping@hashicorp.com",
+    "sso": { "enforced": false },
+    "tags": ["ibm", "hashicorp"]
+  },
+  "projects": [
+    { "name": "Platform", "description": "Org-as-code and guardrails" },
+    { "name": "Demo",     "description": "Examples, sandboxes, talks" }
+  ]  
+}

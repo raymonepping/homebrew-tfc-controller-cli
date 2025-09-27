@@ -1,0 +1,1105 @@
+{
+  "org": {
+    "name": "optimus_prime",
+    "email": "raymon.epping@hashicorp.com",
+    "sso": {
+      "enforced": false
+    }
+  },
+  "projects": [
+    {
+      "id": "prj-YQBi1ZNfjboS51sQ",
+      "name": "Default Project",
+      "description": ""
+    }
+  ],
+  "workspaces": [
+    {
+      "project_name": "Default Project",
+      "id": "ws-qUcNyvEyipYmkEv4",
+      "name": "optimus_prime",
+      "execution_mode": "agent",
+      "auto_apply": false,
+      "terraform_version": "1.12.1",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/optimus_prime",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-BhgQHam8RCsXPp5i",
+      "name": "demo_prime",
+      "execution_mode": "agent",
+      "auto_apply": false,
+      "terraform_version": "1.12.1",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/demo_prime",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-DsS876pLLuabg1vg",
+      "name": "blessjoe",
+      "execution_mode": "agent",
+      "auto_apply": true,
+      "terraform_version": "1.11.4",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/blessjoe",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-j2QdGNLtsczJPqxk",
+      "name": "project_oss",
+      "execution_mode": "agent",
+      "auto_apply": true,
+      "terraform_version": "1.13.3",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/project_oss",
+        "branch": "hcp-move"
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-wRybjXPMJCf26UGF",
+      "name": "transform",
+      "execution_mode": "agent",
+      "auto_apply": true,
+      "terraform_version": "1.12.2",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "nomad_repping"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/transform",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-MhmeMLdeY6S2Xs9P",
+      "name": "medium_podman",
+      "execution_mode": "agent",
+      "auto_apply": false,
+      "terraform_version": "1.12.2",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/medium_podman",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-Ub1wNdz46ehYjS6c",
+      "name": "demo_optimus",
+      "execution_mode": "agent",
+      "auto_apply": false,
+      "terraform_version": "1.12.1",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/demo_optimus",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-4iCk1mNRRZyyk9Ds",
+      "name": "waypoint_vm",
+      "execution_mode": "remote",
+      "auto_apply": true,
+      "terraform_version": "1.12.1",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": ""
+      },
+      "vcs": {
+        "repo_identifier": "",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-EgUsFJYvDdq3c8aN",
+      "name": "aws_demo",
+      "execution_mode": "remote",
+      "auto_apply": false,
+      "terraform_version": "1.12.1",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": ""
+      },
+      "vcs": {
+        "repo_identifier": "",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-77Afv3exLqPy7gJM",
+      "name": "proximus",
+      "execution_mode": "agent",
+      "auto_apply": false,
+      "terraform_version": "1.12.1",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/blessjoe",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-e8wcyDyguFVtuAd1",
+      "name": "prox_demo",
+      "execution_mode": "remote",
+      "auto_apply": false,
+      "terraform_version": "1.12.1",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": ""
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/prox_demo",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-CFQJd5znDaFcaPrf",
+      "name": "medium",
+      "execution_mode": "agent",
+      "auto_apply": false,
+      "terraform_version": "1.12.2",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/medium",
+        "branch": ""
+      },
+      "tags": []
+    },
+    {
+      "project_name": "Default Project",
+      "id": "ws-wEwaS8i1SENBkViE",
+      "name": "hatsjoe",
+      "execution_mode": "agent",
+      "auto_apply": false,
+      "terraform_version": "1.11.3",
+      "queue_all_runs": false,
+      "agent_pool": {
+        "name": "local_pool"
+      },
+      "vcs": {
+        "repo_identifier": "raymonepping/hatsjoe",
+        "branch": ""
+      },
+      "tags": []
+    }
+  ],
+  "workspace_variables": [
+    {
+      "workspace_id": "ws-qUcNyvEyipYmkEv4",
+      "workspace_name": "optimus_prime",
+      "variables": [
+        {
+          "key": "AWS_SESSION_TOKEN",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "vpc_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "project_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "use_ipam",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "enable_dns_hostnames",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "enable_dns_support",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "enable_flow_logs",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ipam_pool_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "vault_address",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "vault_namespace",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "region",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "vault_token",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SECRET_ACCESS_KEY",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SESSION_EXPIRATION",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_ACCESS_KEY_ID",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "environment",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "os_type",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-BhgQHam8RCsXPp5i",
+      "workspace_name": "demo_prime",
+      "variables": [
+        {
+          "key": "project_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ami_id",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "public_key",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "key_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "selected_os",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "vm_count",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "region",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_ACCESS_KEY_ID",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SECRET_ACCESS_KEY",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SESSION_EXPIRATION",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SESSION_TOKEN",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-DsS876pLLuabg1vg",
+      "workspace_name": "blessjoe",
+      "variables": []
+    },
+    {
+      "workspace_id": "ws-j2QdGNLtsczJPqxk",
+      "workspace_name": "project_oss",
+      "variables": []
+    },
+    {
+      "workspace_id": "ws-wRybjXPMJCf26UGF",
+      "workspace_name": "transform",
+      "variables": [
+        {
+          "key": "AWS_SESSION_EXPIRATION",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_ACCESS_KEY_ID",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SECRET_ACCESS_KEY",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SESSION_TOKEN",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "environment",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "project_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-MhmeMLdeY6S2Xs9P",
+      "workspace_name": "medium_podman",
+      "variables": []
+    },
+    {
+      "workspace_id": "ws-Ub1wNdz46ehYjS6c",
+      "workspace_name": "demo_optimus",
+      "variables": [
+        {
+          "key": "sdn_dcgw_subnet_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "vpc_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "vpc_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "public_subnet_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "az",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "project_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "region",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ipam_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ipam_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "netbox_prefix",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_ACCESS_KEY_ID",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "netbox_token",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "netbox_url",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "asn_number",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SESSION_EXPIRATION",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SECRET_ACCESS_KEY",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SESSION_TOKEN",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-4iCk1mNRRZyyk9Ds",
+      "workspace_name": "waypoint_vm",
+      "variables": [
+        {
+          "key": "key_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ami_id",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "project_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "public_key",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "security_group_id",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "subnet_id",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "volume_size",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "volume_type",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "waypoint_application",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-EgUsFJYvDdq3c8aN",
+      "workspace_name": "aws_demo",
+      "variables": [
+        {
+          "key": "public_key",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ipam_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ipam_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "region",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "project_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "create_entities",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ami_id",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_ACCESS_KEY_ID",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SESSION_EXPIRATION",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SECRET_ACCESS_KEY",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "netbox_token",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "netbox_url",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "asn_number",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SESSION_TOKEN",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-77Afv3exLqPy7gJM",
+      "workspace_name": "proximus",
+      "variables": [
+        {
+          "key": "AWS_SECRET_ACCESS_KEY",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SESSION_TOKEN",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SESSION_EXPIRATION",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_ACCESS_KEY_ID",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-e8wcyDyguFVtuAd1",
+      "workspace_name": "prox_demo",
+      "variables": [
+        {
+          "key": "public_subnet_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ipam_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "netbox_token",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "sdn_dcgw_subnet_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "region",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_SECRET_ACCESS_KEY",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SESSION_TOKEN",
+          "category": "env",
+          "hcl": false,
+          "sensitive": true
+        },
+        {
+          "key": "AWS_SESSION_EXPIRATION",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "AWS_ACCESS_KEY_ID",
+          "category": "env",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ami_id",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "asn_number",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "create_entities",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "ipam_cidr",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "netbox_url",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "project_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        },
+        {
+          "key": "public_key",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-CFQJd5znDaFcaPrf",
+      "workspace_name": "medium",
+      "variables": [
+        {
+          "key": "project_name",
+          "category": "terraform",
+          "hcl": false,
+          "sensitive": false
+        }
+      ]
+    },
+    {
+      "workspace_id": "ws-wEwaS8i1SENBkViE",
+      "workspace_name": "hatsjoe",
+      "variables": []
+    }
+  ],
+  "varsets": [
+    {
+      "id": "varset-jqvdYH3DNXiKPXSX",
+      "name": "optimus_prime_variables",
+      "description": "Variables needed to deploy infrastructure and instances with Optimus Prime",
+      "scope": {
+        "is_global": false,
+        "project_ids": [],
+        "workspace_ids": []
+      },
+      "variables": []
+    }
+  ],
+  "registry": {
+    "modules": [
+      {
+        "id": "mod-VxHJYYGX642TvtsU",
+        "name": "bumblebee",
+        "provider": "aws",
+        "namespace": "optimus_prime",
+        "vcs_repo": "raymonepping/terraform-aws-bumblebee",
+        "latest": "",
+        "versions": []
+      },
+      {
+        "id": "mod-2KiCEkHZSuJMSfVr",
+        "name": "optimus",
+        "provider": "aws",
+        "namespace": "optimus_prime",
+        "vcs_repo": "raymonepping/terraform-aws-optimus",
+        "latest": "",
+        "versions": []
+      }
+    ]
+  },
+  "tags": {
+    "reserved_keys": [
+      {
+        "key": "demo_prospect",
+        "created_at": "2025-05-30T06:42:06.468Z"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "RaymonEpping",
+      "email": "raymon.epping@hashicorp.com",
+      "status": "active",
+      "teams": [
+        "Devs",
+        "Ops",
+        "owners"
+      ]
+    }
+  ],
+  "teams": {
+    "core": [
+      {
+        "id": "team-dYwCabJ3tXbpJpNE",
+        "name": "Devs",
+        "users_count": 2,
+        "visibility": "secret",
+        "sso_team_id": null,
+        "allow_member_token_management": false,
+        "organization_access": {
+          "manage-policies": false,
+          "manage-workspaces": false,
+          "manage-vcs-settings": false,
+          "manage-policy-overrides": false,
+          "manage-modules": false,
+          "manage-providers": false,
+          "manage-run-tasks": false,
+          "manage-projects": false,
+          "manage-membership": false,
+          "manage-teams": false,
+          "manage-organization-access": false,
+          "access-secret-teams": false,
+          "read-projects": false,
+          "read-workspaces": false,
+          "manage-agent-pools": false,
+          "manage-public-providers": false,
+          "manage-public-modules": false
+        }
+      },
+      {
+        "id": "team-v8H3qWsNDeU77rnF",
+        "name": "Ops",
+        "users_count": 1,
+        "visibility": "secret",
+        "sso_team_id": null,
+        "allow_member_token_management": false,
+        "organization_access": {
+          "manage-policies": false,
+          "manage-workspaces": false,
+          "manage-vcs-settings": false,
+          "manage-policy-overrides": false,
+          "manage-modules": false,
+          "manage-providers": false,
+          "manage-run-tasks": false,
+          "manage-projects": false,
+          "manage-membership": false,
+          "manage-teams": false,
+          "manage-organization-access": false,
+          "access-secret-teams": false,
+          "read-projects": false,
+          "read-workspaces": false,
+          "manage-agent-pools": false,
+          "manage-public-providers": false,
+          "manage-public-modules": false
+        }
+      },
+      {
+        "id": "team-6iWtnDuSVD7PX98C",
+        "name": "owners",
+        "users_count": 4,
+        "visibility": "secret",
+        "sso_team_id": null,
+        "allow_member_token_management": true,
+        "organization_access": {
+          "manage-policies": true,
+          "manage-workspaces": true,
+          "manage-vcs-settings": true,
+          "manage-policy-overrides": true,
+          "manage-modules": true,
+          "manage-providers": true,
+          "manage-run-tasks": true,
+          "manage-projects": true,
+          "manage-membership": true,
+          "manage-teams": true,
+          "manage-organization-access": true,
+          "access-secret-teams": true,
+          "read-projects": true,
+          "read-workspaces": true,
+          "manage-agent-pools": true,
+          "manage-public-providers": true,
+          "manage-public-modules": true
+        }
+      }
+    ],
+    "memberships": [
+      {
+        "team_id": "team-dYwCabJ3tXbpJpNE",
+        "user_id": "user-dYJ8PAvMFznRZegs"
+      },
+      {
+        "team_id": "team-dYwCabJ3tXbpJpNE",
+        "user_id": "user-HudBUuwbFmmZua1m"
+      },
+      {
+        "team_id": "team-v8H3qWsNDeU77rnF",
+        "user_id": "user-HudBUuwbFmmZua1m"
+      },
+      {
+        "team_id": "team-6iWtnDuSVD7PX98C",
+        "user_id": "user-UeNNWyVKjDuGYZ2w"
+      },
+      {
+        "team_id": "team-6iWtnDuSVD7PX98C",
+        "user_id": "user-26BcX2F61eZ56J5v"
+      },
+      {
+        "team_id": "team-6iWtnDuSVD7PX98C",
+        "user_id": "user-275sjft7yRSMFsx3"
+      },
+      {
+        "team_id": "team-6iWtnDuSVD7PX98C",
+        "user_id": "user-HudBUuwbFmmZua1m"
+      }
+    ],
+    "project_access": [
+      {
+        "project_id": "prj-YQBi1ZNfjboS51sQ",
+        "team_id": "team-dYwCabJ3tXbpJpNE",
+        "access": "read",
+        "project_access": {
+          "settings": "read",
+          "teams": "none",
+          "variable-sets": "none"
+        },
+        "workspace_access": {
+          "create": false,
+          "move": false,
+          "locking": false,
+          "delete": false,
+          "runs": "read",
+          "variables": "read",
+          "state-versions": "read",
+          "sentinel-mocks": "none",
+          "run-tasks": false
+        }
+      },
+      {
+        "project_id": "prj-YQBi1ZNfjboS51sQ",
+        "team_id": "team-v8H3qWsNDeU77rnF",
+        "access": "write",
+        "project_access": {
+          "settings": "read",
+          "teams": "none",
+          "variable-sets": "write"
+        },
+        "workspace_access": {
+          "create": false,
+          "move": false,
+          "locking": true,
+          "delete": false,
+          "runs": "apply",
+          "variables": "write",
+          "state-versions": "write",
+          "sentinel-mocks": "read",
+          "run-tasks": false
+        }
+      }
+    ]
+  }
+}
