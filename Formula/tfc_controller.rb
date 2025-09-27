@@ -1,7 +1,7 @@
 class TfcController < Formula
   desc "Bash-powered Terraform Cloud controller CLI"
   homepage "https://github.com/raymonepping/tfc_controller"
-  url "https://github.com/raymonepping/tfc_controller/archive/refs/tags/1.0.1.tar.gz"
+  url "https://github.com/raymonepping/tfc_controller/archive/refs/tags/v1.0.1.tar.gz"
   sha256 "d5558cd419c8d46bdc958064cb97f963d1ea793866414c025906ec15033512ed"
   license "MIT"
   version "1.0.1"
@@ -11,6 +11,7 @@ class TfcController < Formula
 
   def install
     libexec.install Dir["*"]
+    # ensure the main entry point is executable
     chmod 0755, libexec/"bin/tfc_controller.sh"
 
     (bin/"tfc_controller").write <<~SH
@@ -31,6 +32,6 @@ class TfcController < Formula
   end
 
   test do
-    assert_match "tfc_controller", shell_output("#{bin}/tfc_controller -V")
+    assert_match "tfc_controller v", shell_output("#{bin}/tfc_controller -V")
   end
 end
