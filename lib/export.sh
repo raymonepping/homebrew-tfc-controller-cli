@@ -44,7 +44,8 @@ __export_paged_get_data() {
 }
 
 export_live() {
-  local org="$1" out_file="$2" profile="${3:-minimal}"
+  # local org="$1" out_file="$2" profile="${3:-minimal}"
+  local org="$1" out_file="$2" profile="${3:-minimal}" doc_out="${4:-}" doc_tpl="${5:-}"
   export ORG="${org}"
 
   # 1) Organization
@@ -411,4 +412,16 @@ export_live() {
   mkdir -p "$(dirname "${out_file}")"
   printf '%s\n' "${assembled}" | jq '.' > "${out_file}"
   ok "Exported to ${out_file}"
+
+  # Optional: emit markdown document
+  if [[ -n "${doc_out}" ]]; then
+    if command -v doc_render_from_export >/dev/null 2>&1; then
+      gum_spinner_start "Rendering markdown document"
+      doc_render_from_export "${out_file}" "${doc_out}" "${doc_tpl:-}"
+      gum_spinner_stop
+      ok "Document written to ${doc_out}"
+    else
+      warn "document.sh not loaded; skipping markdown render"
+    fi
+  fi
 }

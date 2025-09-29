@@ -3,8 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # shellcheck disable=SC2034
-# Let VERSION be overridden at build-time or via env, but default sensibly.
-VERSION="1.0.6"
+VERSION="1.0.8"
 
 #------------------------------------------------------------------------------
 # Paths & runtime defaults (works both locally and when installed via Homebrew)
@@ -56,6 +55,7 @@ source "${TFC_LIB}/tags.sh"
 source "${TFC_LIB}/teams.sh"
 source "${TFC_LIB}/users.sh"
 
+source "${TFC_LIB}/document.sh"
 source "${TFC_LIB}/export.sh"
 source "${TFC_LIB}/show.sh"
 
@@ -102,12 +102,14 @@ ${BOLD}${CYAN}COMMANDS${NC}
   ${GREEN}apply-projects${NC} <spec.json> [--yes]
                                Apply projects only.
 
-  ${GREEN}export${NC} [--org <name> | --spec <spec.json>] -o|--out <file> [--profile minimal|full]
+  ${GREEN}export${NC} [--org <name> | --spec <spec.json>] -o|--out <file> [--profile minimal|full] [--doc-out <doc.md>] [--doc-tpl <tpl>]
       Export org data to JSON.
         ${YELLOW}--org <name>${NC}        Org name
         ${YELLOW}--spec <file>${NC}       Spec file with .org.name
-        ${YELLOW}-o, --out <file>${NC}    Output file (required)
+        ${YELLOW}-o, --out <file>${NC}    Output JSON (required)
         ${YELLOW}--profile${NC}           minimal (default) or full
+        ${YELLOW}--doc-out <file>${NC}    Also write Markdown document during export
+        ${YELLOW}--doc-tpl <file>${NC}    Optional template (reserved)
 
   ${GREEN}show${NC} -f|--file <export.json> [SECTIONS...] [FILTERS...]
       Pretty-print an export.
@@ -125,6 +127,9 @@ ${BOLD}${CYAN}COMMANDS${NC}
         ${YELLOW}-w, --workspace "<name>"${NC} Filter by workspace
         ${YELLOW}-t, --tag "<tag>"${NC}        Filter by workspace tag
         ${YELLOW}-m, --module "<name>"${NC}    Filter by registry module
+
+  ${GREEN}document${NC} -f|--file <export.json> -o|--out <doc.md> [--template <tpl>]
+      Generate a Markdown document from an existing export.
 
 ${BOLD}${CYAN}GLOBAL FLAGS${NC}
   ${YELLOW}-h, --help${NC}               Show this help
@@ -221,14 +226,16 @@ case "${cmd}" in
 
   export)
     shift
-    org_from="" spec_from="" out_file="" profile="minimal"
+    org_from="" spec_from="" out_file="" profile="minimal" doc_out="" doc_tpl=""
     while [[ $# -gt 0 ]]; do
       case "$1" in
-        --org)     org_from="$2"; shift 2 ;;
-        --spec)    spec_from="$2"; shift 2 ;;
-        -o|--out)  out_file="$2"; shift 2 ;;
-        --profile) profile="$2"; shift 2 ;;
-        -h|--help) usage; exit 0 ;;
+        --org)       org_from="$2"; shift 2 ;;
+        --spec)      spec_from="$2"; shift 2 ;;
+        -o|--out)    out_file="$2"; shift 2 ;;
+        --profile)   profile="$2"; shift 2 ;;
+        --doc-out)   doc_out="$2"; shift 2 ;;
+        --doc-tpl)   doc_tpl="$2"; shift 2 ;;
+        -h|--help)   usage; exit 0 ;;
         *) err "Unknown flag: $1"; usage; exit 2 ;;
       esac
     done
@@ -239,14 +246,34 @@ case "${cmd}" in
     fi
     [[ -n "${org_from}" ]] || { err "Provide --org <name> or --spec <spec.json>"; exit 2; }
     gum_reminder
-    export_live "${org_from}" "${out_file}" "${profile}"
+    export_live "${org_from}" "${out_file}" "${profile}" "${doc_out}" "${doc_tpl}"
+    ;;
+
+  document)
+    # Standalone doc generation from an existing export
+    shift
+    file="" out="" tpl=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        -f|--file)   file="$2"; shift 2 ;;
+        -o|--out)    out="$2"; shift 2 ;;
+        --template)  tpl="$2"; shift 2 ;;
+        -h|--help)   usage; exit 0 ;;
+        *) err "Unknown flag: $1"; usage; exit 2 ;;
+      esac
+    done
+    [[ -f "${file}" ]] || { err "Missing or unreadable -f|--file ${file}"; exit 2; }
+    [[ -n "${out}"   ]] || { err "Missing -o|--out <doc.md>"; exit 2; }
+    gum_reminder
+    doc_render_from_export "${file}" "${out}" "${tpl:-}"
+    ok "Document written to ${out}"
     ;;
 
   show)
     shift
     file=""
-    do_projects=0 do_workspaces=0 do_variables=0 do_varsets=0 do_registry=0 do_tags=0 do_users=0 do_teams=0
-    f_project="" f_workspace="" f_tag="" f_module=""
+    do_projects=0; do_workspaces=0; do_variables=0; do_varsets=0; do_registry=0; do_tags=0; do_users=0; do_teams=0
+    f_project=""; f_workspace=""; f_tag=""; f_module=""
 
     while [[ $# -gt 0 ]]; do
       case "$1" in
