@@ -1,3 +1,4 @@
+# Formula/tfc_controller.rb
 class TfcController < Formula
   desc "Bash-powered Terraform Cloud controller CLI (export/show org data)"
   homepage "https://github.com/raymonepping/tfc_controller"
@@ -13,10 +14,10 @@ class TfcController < Formula
     libexec.install Dir["*"]
     Dir["#{libexec}/bin/*"].each { |f| chmod 0755, f }
 
-    # Strong wrapper: pass TFC_ROOT so the script doesn't have to guess
     (bin/"tfc_controller").write <<~SH
       #!/usr/bin/env bash
       export TFC_ROOT="#{libexec}"
+      export TFC_VERSION="#{version}"     # <-- pass Homebrew package version
       exec "#{Formula["bash"].opt_bin}/bash" "#{libexec}/bin/tfc_controller.sh" "$@"
     SH
     (bin/"tfc_controller").chmod 0755
