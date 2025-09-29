@@ -3,19 +3,41 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # shellcheck disable=SC2034
-VERSION="1.0.0"
+# Let VERSION be overridden at build-time or via env, but default sensibly.
+VERSION="${TFC_VERSION:-1.0.3}"
 
 #------------------------------------------------------------------------------
-# Paths & .env
+# Paths & runtime defaults (works both locally and when installed via Homebrew)
 #------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# When installed via Homebrew, this resolves to .../libexec/bin, so /.. = libexec
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
+# Project-scoped env (namespaced as TFC_* to avoid collisions)
+export TFC_ROOT="${TFC_ROOT:-$ROOT_DIR}"
+export TFC_CONF="${TFC_CONF:-$TFC_ROOT/configuration}"
+export TFC_LIB="${TFC_LIB:-$TFC_ROOT/lib}"
+export TFC_LOGS="${TFC_LOGS:-$TFC_ROOT/logs}"
+export TFC_STATE="${TFC_STATE:-$TFC_ROOT/state}"
+
+# Feature toggles / general flags (safe defaults)
+export SET_ALIASES="${SET_ALIASES:-0}"
+export DRY_RUN="${DRY_RUN:-0}"
+export VERBOSE="${VERBOSE:-0}"
+export PARALLEL="${PARALLEL:-1}"
+
+# Make any nested `brew` usage quiet and predictable from inside the CLI
+export HOMEBREW_NO_AUTO_UPDATE="${HOMEBREW_NO_AUTO_UPDATE:-1}"
+export HOMEBREW_NO_INSTALL_CLEANUP="${HOMEBREW_NO_INSTALL_CLEANUP:-1}"
+export HOMEBREW_NO_ENV_HINTS="${HOMEBREW_NO_ENV_HINTS:-1}"
+
+#------------------------------------------------------------------------------
 # Load .env (tokens, host, etc.) if present
-if [[ -f "${ROOT_DIR}/.env" ]]; then
+#------------------------------------------------------------------------------
+if [[ -f "${TFC_ROOT}/.env" ]]; then
   set -o allexport
   # shellcheck disable=SC1090
-  source "${ROOT_DIR}/.env"
+  source "${TFC_ROOT}/.env"
   set +o allexport
 fi
 
@@ -23,23 +45,27 @@ fi
 # Source libs
 #------------------------------------------------------------------------------
 # shellcheck source=/dev/null
-source "${ROOT_DIR}/lib/commons.sh"
+source "${TFC_LIB}/commons.sh"
 
-source "${ROOT_DIR}/lib/org.sh"
-source "${ROOT_DIR}/lib/projects.sh"
-source "${ROOT_DIR}/lib/workspaces.sh"
-source "${ROOT_DIR}/lib/varsets.sh"
-source "${ROOT_DIR}/lib/registry.sh"
-source "${ROOT_DIR}/lib/tags.sh"
-source "${ROOT_DIR}/lib/teams.sh"
-source "${ROOT_DIR}/lib/users.sh"
+source "${TFC_LIB}/org.sh"
+source "${TFC_LIB}/projects.sh"
+source "${TFC_LIB}/workspaces.sh"
+source "${TFC_LIB}/varsets.sh"
+source "${TFC_LIB}/registry.sh"
+source "${TFC_LIB}/tags.sh"
+source "${TFC_LIB}/teams.sh"
+source "${TFC_LIB}/users.sh"
 
-source "${ROOT_DIR}/lib/export.sh"
-source "${ROOT_DIR}/lib/show.sh"
+source "${TFC_LIB}/export.sh"
+source "${TFC_LIB}/show.sh"
 
+#------------------------------------------------------------------------------
+# Colors
+#------------------------------------------------------------------------------
 supports_color() {
-  # color if stdout is a TTY, tput is present with >=8 colors, and NO_COLOR not set
-  [[ -t 1 ]] && command -v tput >/dev/null 2>&1 && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]] && [[ -z "${NO_COLOR:-}" ]]
+  [[ -t 1 ]] && command -v tput >/dev/null 2>&1 \
+    && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]] \
+    && [[ -z "${NO_COLOR:-}" ]]
 }
 
 init_colors() {
@@ -139,7 +165,7 @@ cmd="${1:-}"
 if [[ -z "${cmd}" || "${cmd}" == "-h" || "${cmd}" == "--help" ]]; then
   usage; exit 0
 fi
-if [[ "${cmd}" == "--version" ]]; then
+if [[ "${cmd}" == "-V" || "${cmd}" == "--version" ]]; then
   echo "tfc_controller v${VERSION}"
   exit 0
 fi
@@ -224,26 +250,27 @@ case "${cmd}" in
 
     while [[ $# -gt 0 ]]; do
       case "$1" in
-        -f|--file)     file="$2"; shift 2 ;;
-        --projects)    do_projects=1; shift ;;
-        --workspaces)  do_workspaces=1; shift ;;
-        --variables)   do_variables=1; shift ;;
-        --varsets)     do_varsets=1; shift ;;
-        --registry)    do_registry=1; shift ;;
-        --tags)        do_tags=1; shift ;;
-        --users)       do_users=1; shift ;;
-        --teams)       do_teams=1; shift ;;
-        -p|--project)  f_project="$2"; shift 2 ;;
-        -w|--workspace)f_workspace="$2"; shift 2 ;;
-        -t|--tag)      f_tag="$2"; shift 2 ;;
-        -m|--module)   f_module="$2"; shift 2 ;;
-        -h|--help)     usage; exit 0 ;;
+        -f|--file)      file="$2"; shift 2 ;;
+        --projects)     do_projects=1; shift ;;
+        --workspaces)   do_workspaces=1; shift ;;
+        --variables)    do_variables=1; shift ;;
+        --varsets)      do_varsets=1; shift ;;
+        --registry)     do_registry=1; shift ;;
+        --tags)         do_tags=1; shift ;;
+        --users)        do_users=1; shift ;;
+        --teams)        do_teams=1; shift ;;
+        -p|--project)   f_project="$2"; shift 2 ;;
+        -w|--workspace) f_workspace="$2"; shift 2 ;;
+        -t|--tag)       f_tag="$2"; shift 2 ;;
+        -m|--module)    f_module="$2"; shift 2 ;;
+        -h|--help)      usage; exit 0 ;;
         *) err "Unknown flag: $1"; usage; exit 2 ;;
       esac
     done
 
     [[ -f "${file}" ]] || { err "Missing or unreadable -f|--file ${file}"; exit 2; }
 
+    # Default view if nothing specified: projects + workspaces
     if (( do_projects == 0 && do_workspaces == 0 && do_variables == 0 && do_varsets == 0 && do_registry == 0 && do_tags == 0 && do_users == 0 && do_teams == 0 )); then
       do_projects=1; do_workspaces=1
     fi
