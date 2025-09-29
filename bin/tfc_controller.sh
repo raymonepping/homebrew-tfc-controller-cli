@@ -31,10 +31,19 @@ export HOMEBREW_NO_ENV_HINTS="${HOMEBREW_NO_ENV_HINTS:-1}"
 
 # Minimal color helpers (no side-effects)
 supports_color() {
-  [[ -t 1 ]] && command -v tput >/dev/null 2>&1 \
-    && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]] \
-    && [[ -z "${NO_COLOR:-}" ]]
+  # Only if stdout is a TTY
+  [[ -t 1 ]] || return 1
+  # TERM must be set and not dumb
+  [[ -n "${TERM:-}" && "${TERM}" != "dumb" ]] || return 1
+  # tput must exist and report >=8 colors
+  command -v tput >/dev/null 2>&1 || return 1
+  local colors
+  colors="$(tput colors 2>/dev/null || echo 0)"
+  [[ "${colors}" =~ ^[0-9]+$ && "${colors}" -ge 8 ]] || return 1
+  # Respect NO_COLOR
+  [[ -z "${NO_COLOR:-}" ]]
 }
+
 init_colors() {
   if supports_color; then
     BOLD=$'\e[1m'; DIM=$'\e[2m'; CYAN=$'\e[36m'; GREEN=$'\e[32m'; YELLOW=$'\e[33m'; NC=$'\e[0m'
