@@ -26,6 +26,28 @@ It wraps the TFC API with a consistent CLI interface and pretty-prints exports i
 
 ## Installation
 
+### Option 1: Homebrew (recommended)
+
+Add the tap and install:
+
+```bash
+brew tap raymonepping/tfc-controller-cli
+brew install tfc_controller
+```
+
+Upgrade later with:
+```bash
+brew upgrade tfc_controller
+```
+
+Optional extras:
+
+```bash
+brew install gum   # richer UI tables and prompts
+```
+
+### Option 2: Local clone
+
 Clone the repo and add the `bin/` folder to your `PATH`:
 
 ```bash
