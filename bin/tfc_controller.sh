@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 # shellcheck disable=SC2034
 # Let VERSION be overridden at build-time or via env, but default sensibly.
-VERSION="${TFC_VERSION:-1.0.3}"
+VERSION="1.0.6"
 
 #------------------------------------------------------------------------------
 # Paths & runtime defaults (works both locally and when installed via Homebrew)
