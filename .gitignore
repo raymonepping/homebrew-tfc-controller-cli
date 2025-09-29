@@ -10,6 +10,7 @@ Thumbs.db
 *.swp
 *.pid
 git_commit.sh
+tfc_controller-*.tar.gz
 FOLDER_TREE.md
 
 ########################################
