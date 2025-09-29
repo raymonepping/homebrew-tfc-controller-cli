@@ -9,6 +9,8 @@ Thumbs.db
 *.bak
 *.swp
 *.pid
+.dockerignore
+.backupignore
 git_commit.sh
 tfc_controller-*.tar.gz
 FOLDER_TREE.md
