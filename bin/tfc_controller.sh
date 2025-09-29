@@ -16,7 +16,7 @@ export TFC_LOGS="${TFC_LOGS:-$TFC_ROOT/logs}"
 export TFC_STATE="${TFC_STATE:-$TFC_ROOT/state}"
 
 # Version: prefer env from Homebrew wrapper; else .version; else 'dev'
-VERSION="${TFC_VERSION:-$( ( [ -f "${TFC_ROOT}/.version" ] && sed 's/^v//' "${TFC_ROOT}/.version" ) || echo dev)}"
+VERSION="2.0.3"${TFC_ROOT}/.version" ] && sed 's/^v//' "${TFC_ROOT}/.version" ) || echo dev)}"
 
 # Feature toggles / general flags
 export SET_ALIASES="${SET_ALIASES:-0}"
