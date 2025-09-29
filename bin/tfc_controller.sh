@@ -3,7 +3,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # shellcheck disable=SC2034
-VERSION="1.0.9"
+VERSION="2.0.0"
 
 #------------------------------------------------------------------------------
 # Paths & runtime defaults (works both locally and when installed via Homebrew)
