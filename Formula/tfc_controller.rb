@@ -31,7 +31,7 @@ class TfcController < Formula
         export TFE_HOST=app.terraform.io
         export TFE_TOKEN=<your token>
 
-      Optional UI niceties:
+      Optional UI/UX niceties:
         brew install charmbracelet/tap/gum
     EOS
   end
