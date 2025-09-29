@@ -129,6 +129,6 @@ docker-compose.override.yml
 .terraform.lock.hcl
 crash.log
 justfile
-backups/*
+backups/*.json
 specs/*.json
 logs/
