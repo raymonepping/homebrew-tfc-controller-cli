@@ -12,6 +12,7 @@ Thumbs.db
 git_commit.sh
 tfc_controller-*.tar.gz
 FOLDER_TREE.md
+reload_version.sh
 
 ########################################
 # 💻 IDE & Editor Configs
