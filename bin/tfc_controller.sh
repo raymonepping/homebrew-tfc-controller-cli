@@ -16,24 +16,7 @@ export TFC_LOGS="${TFC_LOGS:-$TFC_ROOT/logs}"
 export TFC_STATE="${TFC_STATE:-$TFC_ROOT/state}"
 
 # Version: prefer env from Homebrew wrapper; else .version; else 'dev'
-VERSION="${TFC_VERSION:-$(
-  if [[ -f "${TFC_ROOT}/.version" ]]; then
-    sed 's/^v//' "${TFC_ROOT}/.version"
-  else
-    echo dev
-  fi
-)}"
-
-# --- Pre-scan argv for global startup flags that affect behavior before parsing
-for arg in "$@"; do
-  case "$arg" in
-    -v|--verbose) VERBOSE=1 ;;
-    --no-color)   NO_COLOR=1 ;;
-  esac
-done
-
-# Simple debug logger (stderr)
-debug() { [[ "${VERBOSE:-0}" == "1" ]] && echo "[debug] $*" >&2; }
+VERSION="2.0.3"${TFC_ROOT}/.version" ] && sed 's/^v//' "${TFC_ROOT}/.version" ) || echo dev)}"
 
 # Feature toggles / general flags
 export SET_ALIASES="${SET_ALIASES:-0}"
@@ -46,9 +29,7 @@ export HOMEBREW_NO_AUTO_UPDATE="${HOMEBREW_NO_AUTO_UPDATE:-1}"
 export HOMEBREW_NO_INSTALL_CLEANUP="${HOMEBREW_NO_INSTALL_CLEANUP:-1}"
 export HOMEBREW_NO_ENV_HINTS="${HOMEBREW_NO_ENV_HINTS:-1}"
 
-#------------------------------------------------------------------------------
 # Minimal color helpers (no side-effects)
-#------------------------------------------------------------------------------
 supports_color() {
   # Only if stdout is a TTY
   [[ -t 1 ]] || return 1
@@ -121,7 +102,6 @@ ${BOLD}${CYAN}COMMANDS${NC}
 ${BOLD}${CYAN}GLOBAL FLAGS${NC}
   ${YELLOW}-h, --help${NC}               Show this help
   ${YELLOW}-V, --version${NC}            Show version
-  ${YELLOW}-v, --verbose${NC}            Enable debug logging
   ${YELLOW}--no-color${NC}               Disable ANSI colors (or set NO_COLOR=1)
 
 ${DIM}Notes:${NC}
@@ -137,22 +117,13 @@ if [[ -z "${cmd}" || "${cmd}" == "-h" || "${cmd}" == "--help" ]]; then usage; ex
 if [[ "${cmd}" == "-V" || "${cmd}" == "--version" ]]; then echo "tfc_controller v${VERSION}"; exit 0; fi
 
 #------------------------------------------------------------------------------
-# Load .env (prefer current working directory, fallback to tool root)
+# Load .env if present
 #------------------------------------------------------------------------------
-if [[ -f ".env" ]]; then
-  debug "Loading env file: $(pwd)/.env"
-  set -o allexport
-  # shellcheck disable=SC1091
-  source ".env"
-  set +o allexport
-elif [[ -f "${TFC_ROOT}/.env" ]]; then
-  debug "Loading env file: ${TFC_ROOT}/.env"
+if [[ -f "${TFC_ROOT}/.env" ]]; then
   set -o allexport
   # shellcheck disable=SC1090
   source "${TFC_ROOT}/.env"
   set +o allexport
-else
-  debug "No .env found in CWD or TFC_ROOT"
 fi
 
 #------------------------------------------------------------------------------
@@ -171,6 +142,90 @@ source "${TFC_LIB}/users.sh"
 source "${TFC_LIB}/document.sh"
 source "${TFC_LIB}/export.sh"
 source "${TFC_LIB}/show.sh"
+
+#------------------------------------------------------------------------------
+# Colors
+#------------------------------------------------------------------------------
+supports_color() {
+  [[ -t 1 ]] && command -v tput >/dev/null 2>&1 \
+    && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]] \
+    && [[ -z "${NO_COLOR:-}" ]]
+}
+
+init_colors() {
+  if supports_color; then
+    BOLD=$'\e[1m'
+    DIM=$'\e[2m'
+    CYAN=$'\e[36m'
+    GREEN=$'\e[32m'
+    YELLOW=$'\e[33m'
+    NC=$'\e[0m'
+  else
+    BOLD=""; DIM=""; CYAN=""; GREEN=""; YELLOW=""; NC=""
+  fi
+}
+
+#------------------------------------------------------------------------------
+# Usage / Help
+#------------------------------------------------------------------------------
+usage() {
+  init_colors
+  cat <<EOF
+${BOLD}${CYAN}tfc_controller v${VERSION}${NC} — Manage & export Terraform Cloud org data
+
+${BOLD}${CYAN}USAGE${NC}
+  ${GREEN}tfc_controller${NC} <command> [options]
+
+${BOLD}${CYAN}COMMANDS${NC}
+  ${GREEN}validate${NC} <spec.json>            Validate a spec file (.org.name + .org.email).
+  ${GREEN}plan${NC} <spec.json>                Plan org + project changes.
+  ${GREEN}apply${NC} <spec.json> [--yes]       Apply org + project changes.
+  ${GREEN}ensure-org${NC} <spec.json> [--dry-run]
+                               Ensure org exists (optionally dry-run).
+  ${GREEN}plan-projects${NC} <spec.json>       Plan changes for projects only.
+  ${GREEN}apply-projects${NC} <spec.json> [--yes]
+                               Apply projects only.
+
+  ${GREEN}export${NC} [--org <name> | --spec <spec.json>] -o|--out <file> [--profile minimal|full] [--doc-out <doc.md>] [--doc-tpl <tpl>]
+      Export org data to JSON.
+        ${YELLOW}--org <name>${NC}        Org name
+        ${YELLOW}--spec <file>${NC}       Spec file with .org.name
+        ${YELLOW}-o, --out <file>${NC}    Output JSON (required)
+        ${YELLOW}--profile${NC}           minimal (default) or full
+        ${YELLOW}--doc-out <file>${NC}    Also write Markdown document during export
+        ${YELLOW}--doc-tpl <file>${NC}    Optional template (reserved)
+
+  ${GREEN}show${NC} -f|--file <export.json> [SECTIONS...] [FILTERS...]
+      Pretty-print an export.
+      Sections:
+        ${YELLOW}--projects${NC}          Projects
+        ${YELLOW}--workspaces${NC}        Workspaces
+        ${YELLOW}--variables${NC}         Workspace variables
+        ${YELLOW}--varsets${NC}           Variable sets
+        ${YELLOW}--registry${NC}          Registry modules
+        ${YELLOW}--tags${NC}              Reserved tag keys
+        ${YELLOW}--users${NC}             Users + team memberships
+        ${YELLOW}--teams${NC}             Teams (core, memberships, project access)
+      Filters:
+        ${YELLOW}-p, --project "<name>"${NC}   Filter by project
+        ${YELLOW}-w, --workspace "<name>"${NC} Filter by workspace
+        ${YELLOW}-t, --tag "<tag>"${NC}        Filter by workspace tag
+        ${YELLOW}-m, --module "<name>"${NC}    Filter by registry module
+
+  ${GREEN}document${NC} -f|--file <export.json> -o|--out <doc.md> [--template <tpl>]
+      Generate a Markdown document from an existing export.
+
+${BOLD}${CYAN}GLOBAL FLAGS${NC}
+  ${YELLOW}-h, --help${NC}               Show this help
+  ${YELLOW}-V, --version${NC}            Show version
+  ${YELLOW}--no-color${NC}               Disable ANSI colors (or set NO_COLOR=1)
+
+${DIM}Notes:${NC}
+  • Reads TFE_TOKEN and TFE_HOST from .env
+  • 'export' supports profiles: minimal (default) or full
+  • 'show' defaults to projects + workspaces if no section given
+EOF
+}
 
 #------------------------------------------------------------------------------
 # Gum reminder
@@ -193,6 +248,17 @@ gum_reminder() {
 #------------------------------------------------------------------------------
 # Dispatch
 #------------------------------------------------------------------------------
+cmd="${1:-}"
+
+# Global help/version
+if [[ -z "${cmd}" || "${cmd}" == "-h" || "${cmd}" == "--help" ]]; then
+  usage; exit 0
+fi
+if [[ "${cmd}" == "-V" || "${cmd}" == "--version" ]]; then
+  echo "tfc_controller v${VERSION}"
+  exit 0
+fi
+
 case "${cmd}" in
   validate)
     spec="${2:-}"; [[ -f "${spec}" ]] || { usage; exit 2; }
