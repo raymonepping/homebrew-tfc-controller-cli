@@ -387,3 +387,25 @@ show_teams() {
   echo
   show_team_project_access "${file}"
 }
+
+# ---------------- Agent Pools ----------------
+ show_agent_pools() {
+   local file="$1"
+  local base='.agent_pools[]? | {
+    name,
+    organization_scoped: (if .organization_scoped then "true" else "false" end),
+    allowed: ((.allowed_projects // []) | join(", "))
+  }'
+  if _has_gum; then
+     gum_title "Agent Pools"
+    jq -r "${base} | [ .name, .organization_scoped, .allowed ] | @csv" "${file}" \
+      | gum table --columns "Name,Org-scoped,Allowed Projects" --print
+   else
+     echo "Agent Pools"
+     {
+
+      echo -e "Name\tOrg-scoped\tAllowed Projects"
+      jq -r "${base} | [ .name, .organization_scoped, .allowed ] | @tsv" "${file}"
+     } | column -t -s $'\t'
+   fi
+ }

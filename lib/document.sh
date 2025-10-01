@@ -57,6 +57,7 @@ __sec_toc() {
 - [Organization](#organization)
 - [Summary](#summary)
 - [Projects](#projects)
+- [Agent Pools](#agent-pools)
 - [Workspaces](#workspaces)
 - [Workspace Variables (keys only)](#workspace-variables-keys-only)
 - [Variable Sets](#variable-sets)
@@ -83,9 +84,8 @@ __sec_org_table() {
   {
     __out "## Organization"
     __hr
-    printf "Name\tEmail\tSSO\n"
     printf "%s\t%s\t%s\n" "$org_name" "$org_email" "$sso" \
-      | __emit_table "Name|Email|SSO"
+    | __emit_table "Name|Email|SSO"
   } > "$f"
 }
 
@@ -102,7 +102,7 @@ __sec_summary() {
   {
     __out "## Summary"
     __hr
-    printf "Projects\tWorkspaces\tUsers\tTeams\tVarsets\tModules\n"
+    # printf "Projects\tWorkspaces\tUsers\tTeams\tVarsets\tModules\n"
     printf "%s\t%s\t%s\t%s\t%s\t%s\n" "$np" "$nw" "$nu" "$nt" "$nv" "$nm" \
       | __emit_table "Projects|Workspaces|Users|Teams|Varsets|Modules"
   } > "$f"
@@ -117,6 +117,25 @@ __sec_projects() {
       ( .projects // [] ) | sort_by(.name)
       | .[] | [ .id, .name, (.description // "") ] | @tsv
     ' "$SRC" | __emit_table "ID|Name|Description"
+  } > "$f"
+}
+
+__sec_agent_pools() {
+  local f="$1"
+  {
+    __out "## Agent Pools"
+    __hr
+    if jq -e '(.agent_pools // []) | length > 0' "$SRC" >/dev/null; then
+      jq -r '
+        ( .agent_pools // [] ) | sort_by(.name)
+        | .[] | [ .name,
+                  (if (.organization_scoped // true) then "org" else "project" end),
+                  ((.allowed_projects // []) | join(", ")) ] | @tsv
+      ' "$SRC" \
+      | __emit_table "Name|Scope|Allowed Projects"
+    else
+      __out "_No agent pools found_."
+    fi
   } > "$f"
 }
 
@@ -367,6 +386,7 @@ __render_with_template() {
       "{{ORG_TABLE}}")          cat "$TMP_DIR/org_table.md" ;;
       "{{SUMMARY_TABLE}}")      cat "$TMP_DIR/summary.md" ;;
       "{{PROJECTS_TABLE}}")     cat "$TMP_DIR/projects.md" ;;
+      "{{AGENT_POOLS_TABLE}}")  cat "$TMP_DIR/agent_pools.md" ;;
       "{{WORKSPACES_TABLE}}")   cat "$TMP_DIR/workspaces.md" ;;
       "{{WORKSPACE_VARS_TABLE}}") cat "$TMP_DIR/ws_vars.md" ;;
       "{{VARSETS_BLOCK}}")      cat "$TMP_DIR/varsets.md" ;;
@@ -392,6 +412,8 @@ __render_default() {
     cat "$TMP_DIR/summary.md"
     __hr
     cat "$TMP_DIR/projects.md"
+    __hr
+    cat "$TMP_DIR/agent_pools.md"
     __hr
     cat "$TMP_DIR/workspaces.md"
     __hr
@@ -427,6 +449,7 @@ doc_render_from_export() {
   __sec_org_table    "$TMP_DIR/org_table.md"
   __sec_summary      "$TMP_DIR/summary.md"
   __sec_projects     "$TMP_DIR/projects.md"
+  __sec_agent_pools  "$TMP_DIR/agent_pools.md"
   __sec_workspaces   "$TMP_DIR/workspaces.md"
   __sec_workspace_vars "$TMP_DIR/ws_vars.md"
   __sec_varsets      "$TMP_DIR/varsets.md"

@@ -240,3 +240,371 @@ list_org_teams_full() {
   done
   echo "${out}"
 }
+
+# ===================== TEAMS + USERS: PLAN/APPLY =====================
+
+# --- Team lookups/ensure ---
+
+team_get_by_name() {
+  local org="$1" name="$2"
+  local raw; raw="$(list_org_teams_raw "${org}")"
+  [[ -z "${raw}" || "${raw}" == "null" ]] && { echo "{}"; return; }
+  jq -c --arg n "${name}" 'map(select(.attributes.name == $n)) | .[0] // {}' <<< "${raw}"
+}
+
+team_create() {
+  local org="$1" name="$2" visibility="${3:-secret}" allow_member_tokens="${4:-false}" org_access_json="${5:-{}}"
+
+  # ✅ Validate and normalize org_access_json to a compact JSON object; fallback to {}
+  local org_access_compact
+  if org_access_compact="$(jq -c . <<<"${org_access_json}" 2>/dev/null)"; then
+    : # ok
+  else
+    org_access_compact="{}"
+  fi
+
+  local payload
+  payload="$(
+    jq -n \
+      --arg name "${name}" \
+      --arg vis "${visibility}" \
+      --argjson allow "$([[ "${allow_member_tokens}" == "true" ]] && echo true || echo false)" \
+      --argjson orgp "${org_access_compact}" '
+      {
+        data: {
+          type: "teams",
+          attributes: {
+            name: $name,
+            visibility: $vis,
+            "allow-member-token-management": $allow,
+            "organization-access": ($orgp // {})
+          }
+        }
+      }'
+  )"
+
+  local out http; out="$(mktemp)"
+  http="$(
+    CURL -w "%{http_code}" -o "${out}" \
+      -H "$(auth_header)" \
+      -H "content-type: application/vnd.api+json" \
+      -H "accept: application/vnd.api+json" \
+      -X POST "https://${TFE_HOST}/api/v2/organizations/${org}/teams" \
+      -d "${payload}"
+  ) " || true
+
+  if [[ "${http}" == "201" ]]; then
+    jq -r '.data.id' "${out}"
+  else
+    if [[ "${http}" == "404" ]]; then
+      err "Team create failed (${name}) HTTP 404. This usually means your token cannot create teams (not an org owner / lacks 'manage teams'). Use a user PAT with org-owner rights."
+    else
+      err "Team create failed (${name}) HTTP ${http}"
+    fi
+    cat "${out}" >&2 || true
+    rm -f "${out}"
+    exit 1
+  fi
+  rm -f "${out}"
+}
+
+team_update() {
+  local team_id="$1" visibility="${2:-secret}" allow_member_tokens="${3:-false}" org_access_json="${4:-{}}"
+
+  local org_access_compact
+  if org_access_compact="$(jq -c . <<<"${org_access_json}" 2>/dev/null)"; then
+    : 
+  else
+    org_access_compact="{}"
+  fi
+
+  local payload
+  payload="$(
+    jq -n \
+      --arg id "${team_id}" \
+      --arg vis "${visibility}" \
+      --argjson allow "$([[ "${allow_member_tokens}" == "true" ]] && echo true || echo false)" \
+      --argjson orgp "${org_access_compact}" '
+      {
+        data: {
+          id: $id,
+          type: "teams",
+          attributes: {
+            visibility: $vis,
+            "allow-member-token-management": $allow,
+            "organization-access": ($orgp // {})
+          }
+        }
+      }'
+  )"
+
+  local out http; out="$(mktemp)"
+  http="$(
+    CURL -w "%{http_code}" -o "${out}" \
+      -H "$(auth_header)" -H "content-type: application/vnd.api+json" \
+      -X PATCH "https://${TFE_HOST}/api/v2/teams/${team_id}" \
+      -d "${payload}"
+  )" || true
+
+  if [[ "${http}" == "200" ]]; then
+    :
+  else
+    err "Team update failed (${team_id}) HTTP ${http}"
+    cat "${out}" >&2 || true
+    rm -f "${out}"
+    exit 1
+  fi
+  rm -f "${out}"
+}
+
+# --- Membership ensure (existing users only, matched by email) ---
+
+# Build email -> user_id map from org memberships
+__org_email_to_userid_map() {
+  local org="$1"
+  local memberships; memberships="$(list_org_memberships_raw "${org}")"
+  [[ -z "${memberships}" || "${memberships}" == "null" ]] && { echo "{}"; return; }
+  jq -r '[ .[] | {
+           key: (.attributes.email // .attributes."user-email" // .attributes."user_email" // ""),
+           value: (.relationships.user.data.id // "")
+         } ] 
+         | map(select(.key != "" and .value != "")) 
+         | from_entries' <<< "${memberships}"
+}
+
+# For a given team, return array of user IDs currently in team
+__team_user_ids() {
+  local team_id="$1"
+  list_team_user_ids "${team_id}"
+}
+
+# Add a user to a team (no-op if already a member)
+__ensure_team_membership() {
+  local org="$1" team_id="$2" user_id="$3"
+
+  # Using team-memberships create endpoint
+  local payload; payload="$(
+    jq -n \
+      --arg tid "${team_id}" \
+      --arg uid "${user_id}" '
+      {
+        data: {
+          type: "team-memberships",
+          relationships: {
+            team: { data: { type:"teams",  id: $tid } },
+            user: { data: { type:"users",  id: $uid } }
+          }
+        }
+      }'
+  )"
+
+  local out http; out="$(mktemp)"
+  http="$(
+    CURL -w "%{http_code}" -o "${out}" \
+      -H "$(auth_header)" -H "content-type: application/vnd.api+json" \
+      -X POST "https://${TFE_HOST}/api/v2/team-memberships" \
+      -d "${payload}"
+  )" || true
+
+  # 201 created, 409 conflict (already a member) are both fine
+  if [[ "${http}" == "201" || "${http}" == "409" ]]; then
+    :
+  else
+    err "Add membership failed (team=${team_id}, user=${user_id}) HTTP ${http}"
+    cat "${out}" >&2 || true
+    rm -f "${out}"
+    exit 1
+  fi
+  rm -f "${out}"
+}
+
+# --- PLAN: teams + memberships (users) ---
+plan_identities() {
+  local spec="$1"
+  local org; org="$(json_get "${spec}" '.org.name')"
+  [[ -n "${org}" && "${org}" != "null" ]] || { err "Missing .org.name for identities"; exit 2; }
+
+  echo "Plan (teams + users):"
+
+  # Desired teams (from spec.teams.core[])
+  local want_teams_arr; want_teams_arr="$(jq -c '(.teams.core // [])' "${spec}")"
+  local want_team_count; want_team_count="$(jq 'length' <<< "${want_teams_arr}")"
+  if [[ "${want_team_count}" -eq 0 ]]; then
+    echo " - No desired teams provided."
+  fi
+
+  # Existing teams raw
+  local have_teams_raw; have_teams_raw="$(list_org_teams_raw "${org}")"
+
+  # Teams plan
+  jq -r '.[] | @base64' <<< "${want_teams_arr}" | while read -r row; do
+    local t name vis allow orgp have_row tid cur_vis cur_allow
+    t="$(echo "${row}" | base64 --decode)"
+    name="$(jq -r '.name' <<< "${t}")"
+    [[ -z "${name}" || "${name}" == "null" ]] && continue
+    vis="$(jq -r '(.visibility // "secret")' <<< "${t}")"
+    allow="$(jq -r '(.allow_member_token_management // false) | tostring' <<< "${t}")"
+    orgp="$(jq -c '(.organization_access // {})' <<< "${t}")"
+
+    have_row="$(jq -c --arg n "${name}" 'map(select(.attributes.name == $n)) | .[0] // {}' <<< "${have_teams_raw}")"
+    tid="$(jq -r '.id // ""' <<< "${have_row}")"
+
+    if [[ -z "${tid}" ]]; then
+      echo " - Team '${name}': create (visibility=${vis}, allow_member_tokens=${allow})"
+      continue
+    fi
+
+    cur_vis="$(jq -r '.attributes.visibility // "secret"' <<< "${have_row}")"
+    cur_allow="$(jq -r '(.attributes["allow-member-token-management"] // false) | tostring' <<< "${have_row}")"
+
+    local change=0
+    [[ "${cur_vis}"   != "${vis}"   ]] && { echo " - Team '${name}': update visibility ${cur_vis} -> ${vis}"; change=1; }
+    [[ "${cur_allow}" != "${allow}" ]] && { echo " - Team '${name}': update allow_member_token_management ${cur_allow} -> ${allow}"; change=1; }
+
+    # org access compare: collapse to sorted true-keys for a human diff
+    local have_access want_access
+    have_access="$(jq -c '(.attributes["organization-access"] // {})' <<< "${have_row}")"
+    want_access="${orgp}"
+    if [[ "$(jq -r 'to_entries|map(select(.value==true)|.key)|sort|join(",")' <<< "${have_access}")" != \
+          "$(jq -r 'to_entries|map(select(.value==true)|.key)|sort|join(",")' <<< "${want_access}")" ]]; then
+      echo " - Team '${name}': update organization-access"
+      change=1
+    fi
+    [[ "${change}" -eq 0 ]] && echo " - Team '${name}': exists"
+  done
+
+  # Memberships plan (spec.users[].teams[])
+  local want_users; want_users="$(jq -c '(.users // [])' "${spec}")"
+  local email_to_id; email_to_id="$(__org_email_to_userid_map "${org}")"
+
+  jq -r '.[] | @base64' <<< "${want_users}" | while read -r row; do
+    local u email uname teams user_id
+    u="$(echo "${row}" | base64 --decode)"
+    email="$(jq -r '.email // ""' <<< "${u}")"
+    uname="$(jq -r '.username // ""' <<< "${u}")"
+    teams="$(jq -c '(.teams // [])' <<< "${u}")"
+
+    [[ -z "${email}" ]] && { warn " - User '${uname}': missing email in spec; skip membership checks"; continue; }
+
+    user_id="$(jq -r --arg e "${email}" '.[$e] // ""' <<< "${email_to_id}")"
+    if [[ -z "${user_id}" ]]; then
+      echo " - User ${email}: NOT IN ORG (invite manually), will skip memberships."
+      continue
+    fi
+
+    # For each desired team, check membership
+    mapfile -t __teams < <(jq -r '.[]' <<< "${teams}")
+    for tname in "${__teams[@]-}"; do
+      [[ -z "${tname}" ]] && continue
+      local have; have="$(team_get_by_name "${org}" "${tname}")"
+      local tid; tid="$(jq -r '.id // ""' <<< "${have}")"
+      if [[ -z "${tid}" ]]; then
+        echo " - Team '${tname}' (for ${email}): team missing (will be created if in spec.teams.core)"
+        continue
+      fi
+      local ids; ids="$(__team_user_ids "${tid}")"
+      if jq -e --arg id "${user_id}" 'index($id)' <<< "${ids}" >/dev/null 2>&1; then
+#     if jq -e --arg id "${user_id}" 'index($id)' <<< "$(jq -r '.[ ]' <<< "${ids}" 2>/dev/null || echo '[]')" >/dev/null 2>&1; then
+        echo " - Membership: ${email} ∈ ${tname}: exists"
+      else
+        echo " - Membership: ${email} → ${tname}: add"
+      fi
+    done
+  done
+}
+
+# --- APPLY: teams + memberships (existing users only) ---
+apply_identities() {
+  local spec="$1"
+  local auto="${2:-}"
+
+  if [[ "${auto}" != "--yes" ]]; then
+    prompt "Apply teams + users changes now? [y/N]: "
+    read -r ans || true
+    [[ "${ans:-}" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 1; }
+  fi
+
+  local org; org="$(json_get "${spec}" '.org.name')"
+  [[ -n "${org}" && "${org}" != "null" ]] || { err "Missing .org.name for identities"; exit 2; }
+
+  # 1) Ensure teams (create/update)
+  local want_teams_arr; want_teams_arr="$(jq -c '(.teams.core // [])' "${spec}")"
+  local have_teams_raw; have_teams_raw="$(list_org_teams_raw "${org}")"
+  jq -r '.[] | @base64' <<< "${want_teams_arr}" | while read -r row; do
+    local t name vis allow orgp have_row tid
+    t="$(echo "${row}" | base64 --decode)"
+    name="$(jq -r '.name' <<< "${t}")"
+    [[ -z "${name}" || "${name}" == "null" ]] && continue
+    vis="$(jq -r '(.visibility // "secret")' <<< "${t}")"
+    allow="$(jq -r '(.allow_member_token_management // false) | tostring' <<< "${t}")"
+    orgp="$(jq -c '(.organization_access // {})' <<< "${t}")"
+
+    have_row="$(jq -c --arg n "${name}" 'map(select(.attributes.name == $n)) | .[0] // {}' <<< "${have_teams_raw}")"
+    tid="$(jq -r '.id // ""' <<< "${have_row}")"
+
+    if [[ -z "${tid}" ]]; then
+      tid="$(team_create "${org}" "${name}" "${vis}" "${allow}" "${orgp}")"
+      ok "Team created: ${name} (${tid})"
+      # refresh cache for later lookups
+      have_teams_raw="$(list_org_teams_raw "${org}")"
+    else
+      # compare + update if needed
+      local cur_vis cur_allow cur_orgp
+      cur_vis="$(jq -r '.attributes.visibility // "secret"' <<< "${have_row}")"
+      cur_allow="$(jq -r '(.attributes["allow-member-token-management"] // false) | tostring' <<< "${have_row}")"
+      cur_orgp="$(jq -c '(.attributes["organization-access"] // {})' <<< "${have_row}")"
+
+      local need=0
+      [[ "${cur_vis}"   != "${vis}"   ]] && need=1
+      [[ "${cur_allow}" != "${allow}" ]] && need=1
+      if [[ "$(jq -r 'to_entries|map(select(.value==true)|.key)|sort|join(",")' <<< "${cur_orgp}")" != \
+            "$(jq -r 'to_entries|map(select(.value==true)|.key)|sort|join(",")' <<< "${orgp}")" ]]; then
+        need=1
+      fi
+
+      if [[ "${need}" -eq 1 ]]; then
+        team_update "${tid}" "${vis}" "${allow}" "${orgp}"
+        ok "Team updated: ${name}"
+      else
+        ok "Team up-to-date: ${name}"
+      fi
+    fi
+  done
+
+  # 2) Ensure memberships for existing users (by email)
+  local email_to_id; email_to_id="$(__org_email_to_userid_map "${org}")"
+  local want_users; want_users="$(jq -c '(.users // [])' "${spec}")"
+
+  jq -r '.[] | @base64' <<< "${want_users}" | while read -r row; do
+    local u email teams
+    u="$(echo "${row}" | base64 --decode)"
+    email="$(jq -r '.email // ""' <<< "${u}")"
+    teams="$(jq -c '(.teams // [])' <<< "${u}")"
+    [[ -z "${email}" ]] && continue
+
+    local uid; uid="$(jq -r --arg e "${email}" '.[$e] // ""' <<< "${email_to_id}")"
+    if [[ -z "${uid}" ]]; then
+      warn "User ${email} not found in org; invite manually, skipping memberships."
+      continue
+    fi
+
+    mapfile -t __teams < <(jq -r '.[]' <<< "${teams}")
+    for tname in "${__teams[@]-}"; do
+      [[ -z "${tname}" ]] && continue
+      local have_t tid; have_t="$(team_get_by_name "${org}" "${tname}")"
+      tid="$(jq -r '.id // ""' <<< "${have_t}")"
+      if [[ -z "${tid}" ]]; then
+        warn "Team '${tname}' (for ${email}) not found; ensure it is in spec.teams.core"
+        continue
+      fi
+
+      local ids; ids="$(__team_user_ids "${tid}")"
+      if jq -e --arg id "${uid}" 'index($id)' <<< "$(jq -r '.[ ]' <<< "${ids}" 2>/dev/null || echo '[]')" >/dev/null 2>&1; then
+        ok "Membership exists: ${email} ∈ ${tname}"
+      else
+        __ensure_team_membership "${org}" "${tid}" "${uid}"
+        ok "Membership added: ${email} → ${tname}"
+      fi
+    done
+  done
+}

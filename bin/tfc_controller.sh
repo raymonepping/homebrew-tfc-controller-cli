@@ -56,6 +56,7 @@ debug() { [[ "${VERBOSE}" == "1" ]] && echo "[debug] $*" >&2; }
 
 # Doctor command: check TFE_TOKEN, API reachability, and required tools
 doctor() {
+  init_colors
   local ok=0
 
   # 1. Check if token is available
@@ -147,8 +148,9 @@ ${BOLD}${CYAN}USAGE${NC}
 
 ${BOLD}${CYAN}COMMANDS${NC}
   ${GREEN}validate${NC} <spec.json>            Validate a spec file (.org.name + .org.email).
-  ${GREEN}plan${NC} <spec.json>                Plan org + project changes.
-  ${GREEN}apply${NC} <spec.json> [--yes]       Apply org + project changes.
+  ${GREEN}plan${NC} <spec.json>                Plan org + agent pools + projects + teams/users.
+  ${GREEN}apply${NC} <spec.json> [--yes]       Apply org + agent pools + projects + teams/users.
+
   ${GREEN}ensure-org${NC} <spec.json> [--dry-run]
                                Ensure org exists (optionally dry-run).
   ${GREEN}plan-projects${NC} <spec.json>       Plan changes for projects only.
@@ -168,6 +170,7 @@ ${BOLD}${CYAN}COMMANDS${NC}
       Pretty-print an export.
       Sections:
         ${YELLOW}--projects${NC}          Projects
+        ${YELLOW}--agent-pools${NC}       Agent pools
         ${YELLOW}--workspaces${NC}        Workspaces
         ${YELLOW}--variables${NC}         Workspace variables
         ${YELLOW}--varsets${NC}           Variable sets
@@ -270,6 +273,7 @@ libs=(
   commons
   org
   projects
+  agent_pools
   workspaces
   varsets
   registry
@@ -360,9 +364,12 @@ plan)
     echo "Plan (org): Create organization"
   fi
   echo
+  plan_agent_pools "${spec}"
+  echo
   plan_projects "${spec}"
+  echo
+  plan_identities "${spec}"
   ;;
-
 apply)
   spec="${2:-}"
   [[ -f "${spec}" ]] || {
@@ -380,7 +387,11 @@ apply)
   fi
   ensure_org "${spec}" "false"
   echo
+  apply_agent_pools "${spec}" "${auto:-}"
+  echo
   apply_projects "${spec}" "${auto:-}"
+  echo
+  apply_identities "${spec}" "${auto:-}"
   ;;
 
 ensure-org)
@@ -519,6 +530,7 @@ show)
   shift
   file=""
   do_projects=0
+  do_agent_pools=0
   do_workspaces=0
   do_variables=0
   do_varsets=0
@@ -541,6 +553,10 @@ show)
       do_projects=1
       shift
       ;;
+    --agent-pools)
+      do_agent_pools=1
+      shift
+      ;;      
     --workspaces)
       do_workspaces=1
       shift
@@ -603,14 +619,20 @@ show)
   }
 
   # Default view if nothing specified: projects + workspaces
-  if ((do_projects == 0 && do_workspaces == 0 && do_variables == 0 && do_varsets == 0 && do_registry == 0 && do_tags == 0 && do_users == 0 && do_teams == 0)); then
-    do_projects=1
-    do_workspaces=1
+  if ((do_projects == 0 && do_agent_pools == 0 && do_workspaces == 0 && do_variables == 0 && do_varsets == 0 && do_registry == 0 && do_tags == 0 && do_users == 0 && do_teams == 0)); then
+     do_projects=1
+     do_workspaces=1
   fi
+  
+  #if ((do_projects == 0 && do_workspaces == 0 && do_variables == 0 && do_varsets == 0 && do_registry == 0 && do_tags == 0 && do_users == 0 && do_teams == 0)); then
+  #  do_projects=1
+  #  do_workspaces=1
+  #fi
 
   gum_reminder
   echo
   ((do_projects)) && show_projects "${file}" "${f_project}" && echo
+  ((do_agent_pools)) && show_agent_pools "${file}" && echo
   ((do_workspaces)) && show_workspaces "${file}" "${f_project}" "${f_tag}" && echo
   ((do_variables)) && show_workspace_variables "${file}" "${f_workspace}" && echo
   ((do_varsets)) && show_varsets "${file}" "${f_project}" && echo

@@ -130,5 +130,6 @@ docker-compose.override.yml
 crash.log
 justfile
 backups/*.json
+backups/*.md
 specs/*.json
 logs/

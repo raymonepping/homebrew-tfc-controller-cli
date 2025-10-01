@@ -71,6 +71,42 @@ export_live() {
   )"
   local prj_map; prj_map="$(jq -r '[ .[] | {key: .id, value: .name} ] | from_entries' <<< "${projects}")"
 
+  # 2a) Agent Pools (list once, shape for export, and build id->name map)
+  gum_spinner_start "Listing agent pools"
+  local agent_pools_raw
+  if command -v ap_list_agent_pools >/dev/null 2>&1; then
+    agent_pools_raw="$(ap_list_agent_pools "${org}")"
+  else
+    # Fallback, in case agent_pools.sh is not sourced for some reason
+    agent_pools_raw="$(__export_paged_get_data "https://${TFE_HOST}/api/v2/organizations/${org}/agent-pools")"
+  fi
+  gum_spinner_stop
+
+# Shape agent pools into export-friendly form and a map for quick lookups
+  local agent_pools
+  agent_pools="$(
+    jq -r --argjson mp "${prj_map}" '
+      [ .[] |
+        {
+          id: .id,
+          name: (.attributes.name // ""),
+          organization_scoped: (.attributes["organization-scoped"] // true),
+          allowed_projects: (
+            (.relationships["allowed-projects"].data // [])
+            | map(.id)
+            | map($mp[.] // .)
+          )
+        }
+      ]' <<< "${agent_pools_raw}"
+  )"
+  # Build pool id -> name map for workspace shaping
+  local ap_map; ap_map="$(jq -r '[ .[] | {key: .id, value: .name} ] | from_entries' <<< "${agent_pools}")"
+
+
+
+
+
+
   # 3) Workspaces (org-wide pagination)
   gum_spinner_start "Listing workspaces"
   local page=1 size=100 all_ws="[]"
@@ -121,7 +157,8 @@ export_live() {
 
     local pool_id pool_name vcs vcs_obj
     pool_id="$(jq -r '.relationships."agent-pool".data.id // ""' <<< "${w}")"
-    pool_name="$(get_agent_pool_name "${pool_id}")"
+    # pool_name="$(get_agent_pool_name "${pool_id}")"
+    pool_name="$(jq -r --arg pid "${pool_id}" -n --argjson mp "${ap_map}" '$mp[$pid] // ""')"
     vcs="$(jq -r '.attributes."vcs-repo" // {}' <<< "${w}")"
 
     if [[ "${profile}" == "minimal" ]]; then
@@ -389,6 +426,7 @@ export_live() {
     jq -n \
       --argjson org        "${org_obj}" \
       --argjson projects   "${projects}" \
+      --argjson agent_pools "${agent_pools}" \
       --argjson workspaces "${workspaces_all}" \
       --argjson wvars      "${workspace_variables}" \
       --argjson varsets    "${varsets}" \
@@ -398,6 +436,7 @@ export_live() {
       --argjson teams      "${teams_full}" \
       '$org + {
         projects: $projects,
+        agent_pools: $agent_pools,
         workspaces: $workspaces,
         workspace_variables: $wvars,
         varsets: $varsets,
