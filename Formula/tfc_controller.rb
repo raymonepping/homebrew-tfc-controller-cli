@@ -2,10 +2,10 @@
 class TfcController < Formula
   desc "Bash-powered Terraform Cloud controller CLI (export/show org data)"
   homepage "https://github.com/raymonepping/tfc_controller"
-  url "https://github.com/raymonepping/tfc_controller/archive/refs/tags/v2.0.6.tar.gz"
-  sha256 "4a122b8dddc6dd3b8beb0373bdefa182616f5a9593a5f676cd9bb135b2f3a9f2"
+  url "https://github.com/raymonepping/tfc_controller/archive/refs/tags/v2.0.7.tar.gz"
+  sha256 "e2eb6b067155c24037cb821838fd03b3c29c472277f96700fb9199cbdde161b2"
   license "MIT"
-  version "2.0.6"
+  version "2.0.7"
 
   depends_on "bash"
   depends_on "jq"
